@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: morgans
+    runtime: node
+    plan: starter
+    buildCommand: npm ci && npm run build
+    startCommand: npm run serve
+    healthCheckPath: /healthz
+    autoDeployTrigger: commit
+    disk:
+      name: morgans-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: TCB_BASE_URL
+        value: https://tcbonepiecechapters.com
+      - key: DISCOVERY_URL
+        value: https://tcbonepiecechapters.com
+      - key: STATE_FILE
+        value: /var/data/processed-chapters.json
+      - key: GOOGLE_TOKEN_FILE
+        value: /var/data/google-token.json
+      - key: OUTPUT_DIR
+        value: /tmp/morgans/out
+      - key: TMP_DIR
+        value: /tmp/morgans/tmp
+      - key: POLL_INTERVAL_MINUTES
+        value: 30
+      - key: HTTP_USER_AGENT
+        value: morgans-render/0.1 (+https://tcbonepiecechapters.com poller)
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false
+      - key: GOOGLE_DRIVE_FOLDER_ID
+        sync: false

@@ -11,6 +11,8 @@ export type AppConfig = {
   googleRedirectUri: string;
   googleDriveFolderId?: string;
   googleTokenFile: string;
+  pollIntervalMinutes: number;
+  port: number;
   userAgent: string;
 };
 
@@ -31,6 +33,14 @@ export function loadConfig(): AppConfig {
     googleRedirectUri: process.env.GOOGLE_REDIRECT_URI ?? "http://localhost:3333/oauth/callback",
     googleDriveFolderId: process.env.GOOGLE_DRIVE_FOLDER_ID || undefined,
     googleTokenFile: process.env.GOOGLE_TOKEN_FILE ?? path.join("data", "google-token.json"),
+    pollIntervalMinutes: parsePositiveInteger(process.env.POLL_INTERVAL_MINUTES, 30),
+    port: parsePositiveInteger(process.env.PORT, 3333),
     userAgent: process.env.HTTP_USER_AGENT ?? "morgans-cli/0.1",
   };
+}
+
+function parsePositiveInteger(value: string | undefined, fallback: number): number {
+  if (!value) return fallback;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 }

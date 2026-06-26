@@ -4,22 +4,26 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit",
+    "build": "tsc",
     "drive:auth": "tsx src/index.ts drive auth",
+    "dev:server": "tsx src/server.ts",
     "poll": "tsx src/index.ts",
-    "start": "tsx src/index.ts"
+    "serve": "node dist/server.js",
+    "start": "node dist/server.js"
   },
   "dependencies": {
     "archiver": "^7.0.1",
     "cheerio": "^1.2.0",
     "commander": "^14.0.3",
     "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "googleapis": "^173.0.0",
     "open": "^11.0.0",
     "p-limit": "^7.3.0"
   },
   "devDependencies": {
     "@types/archiver": "^6.0.3",
+    "@types/express": "^5.0.6",
     "@types/node": "^20.19.0",
     "tsx": "^4.20.5",
     "typescript": "^5.9.3"

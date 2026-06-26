@@ -32,7 +32,7 @@ Then run the one-time auth flow:
 npm run drive:auth
 ```
 
-## Commands
+## Local Commands
 
 ```bash
 npm run poll -- --dry-run
@@ -42,3 +42,49 @@ npm run drive:auth
 ```
 
 The processed-chapter state lives at `data/processed-chapters.json` by default. Generated files live under `downloads/`.
+
+## Web Service
+
+Run the web service locally:
+
+```bash
+npm run dev:server
+```
+
+Useful routes:
+
+```txt
+GET  /healthz
+GET  /status
+GET  /auth/google
+GET  /oauth/callback
+POST /poll
+```
+
+The service starts polling immediately and repeats every `POLL_INTERVAL_MINUTES`, defaulting to `30`.
+
+## Render
+
+This repo includes `render.yaml` for a Render web service. It uses a persistent disk mounted at `/var/data` for:
+
+```txt
+/var/data/google-token.json
+/var/data/processed-chapters.json
+```
+
+Set these secret env vars in Render:
+
+```bash
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_DRIVE_FOLDER_ID=...
+GOOGLE_REDIRECT_URI=https://YOUR_RENDER_SERVICE.onrender.com/oauth/callback
+```
+
+After the first deploy, open:
+
+```txt
+https://YOUR_RENDER_SERVICE.onrender.com/auth/google
+```
+
+Approve Google Drive access once. The service will then upload new CBZ files to Drive and mark chapters processed only after upload succeeds.

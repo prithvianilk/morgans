@@ -21,21 +21,38 @@ export type GoogleDriveUploadResult = {
   location: string;
 };
 
-export async function authorizeGoogleDrive(config: AppConfig): Promise<void> {
-  const oauth2Client = createOAuthClient(config);
-  const callbackUrl = new URL(config.googleRedirectUri);
-
-  const authUrl = oauth2Client.generateAuthUrl({
+export function getGoogleAuthUrl(config: AppConfig): string {
+  return createOAuthClient(config).generateAuthUrl({
     access_type: "offline",
     prompt: "consent",
     scope: [DRIVE_FILE_SCOPE],
   });
+}
 
-  const code = await waitForOAuthCode(callbackUrl, authUrl);
+export async function saveGoogleTokenFromCode(config: AppConfig, code: string): Promise<void> {
+  const oauth2Client = createOAuthClient(config);
   const { tokens } = await oauth2Client.getToken(code);
 
   await mkdir(path.dirname(config.googleTokenFile), { recursive: true });
   await writeFile(config.googleTokenFile, `${JSON.stringify(tokens, null, 2)}\n`, "utf8");
+}
+
+export async function hasGoogleToken(config: AppConfig): Promise<boolean> {
+  try {
+    const token = await readStoredToken(config.googleTokenFile);
+    return Boolean(token.refresh_token || token.access_token);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("Google token file not found")) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+export async function authorizeGoogleDrive(config: AppConfig): Promise<void> {
+  const callbackUrl = new URL(config.googleRedirectUri);
+  const code = await waitForOAuthCode(callbackUrl, getGoogleAuthUrl(config));
+  await saveGoogleTokenFromCode(config, code);
 }
 
 export async function uploadToGoogleDrive(filePath: string, config: AppConfig): Promise<GoogleDriveUploadResult> {
