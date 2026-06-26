@@ -32,6 +32,7 @@ app.get("/status", async (_request, response, next) => {
       ok: true,
       googleToken: await hasGoogleToken(config),
       pollIntervalMinutes: config.pollIntervalMinutes,
+      pollDays: config.pollDays,
       discoveryUrl: config.discoveryUrl,
       scheduler: scheduler.getStatus(),
     });
@@ -91,7 +92,7 @@ app.use((error: unknown, _request: express.Request, response: express.Response, 
 
 const server = app.listen(config.port, () => {
   console.log(`Morgans listening on port ${config.port}`);
-  console.log(`Polling every ${config.pollIntervalMinutes} minute(s).`);
+  console.log(`Polling every ${config.pollIntervalMinutes} minute(s) on UTC days: ${config.pollDays.join(",")}.`);
   scheduler.start();
 });
 

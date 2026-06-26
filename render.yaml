@@ -28,6 +28,8 @@ services:
         value: /tmp/morgans/tmp
       - key: POLL_INTERVAL_MINUTES
         value: 30
+      - key: POLL_DAYS
+        value: 0,6
       - key: ENABLE_AUTH_ROUTES
         value: false
       - key: HTTP_USER_AGENT

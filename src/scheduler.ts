@@ -3,9 +3,13 @@ import { poll, type PollSummary } from "./poll.js";
 
 export type PollRunStatus = {
   running: boolean;
+  runCount: number;
+  skippedCount: number;
   lastStartedAt?: string;
   lastFinishedAt?: string;
   lastSuccessAt?: string;
+  lastSkippedAt?: string;
+  lastSkippedReason?: string;
   lastError?: string;
   lastSummary?: {
     discovered: number;
@@ -17,7 +21,7 @@ export type PollRunStatus = {
 export class PollScheduler {
   private timer: NodeJS.Timeout | undefined;
   private activeRun: Promise<PollSummary> | undefined;
-  private status: PollRunStatus = { running: false };
+  private status: PollRunStatus = { running: false, runCount: 0, skippedCount: 0 };
 
   constructor(private readonly config: AppConfig) {}
 
@@ -25,10 +29,10 @@ export class PollScheduler {
     if (this.timer) return;
 
     this.timer = setInterval(() => {
-      void this.runOnce().catch(() => undefined);
+      void this.runScheduled().catch(() => undefined);
     }, this.config.pollIntervalMinutes * 60 * 1000);
 
-    void this.runOnce().catch(() => undefined);
+    void this.runScheduled().catch(() => undefined);
   }
 
   stop(): void {
@@ -48,6 +52,7 @@ export class PollScheduler {
       running: true,
       lastStartedAt: new Date().toISOString(),
       lastError: undefined,
+      lastSkippedReason: undefined,
     };
 
     this.activeRun = poll(this.config, { dryRun: false })
@@ -55,6 +60,7 @@ export class PollScheduler {
         this.status = {
           ...this.status,
           running: false,
+          runCount: this.status.runCount + 1,
           lastFinishedAt: new Date().toISOString(),
           lastSuccessAt: new Date().toISOString(),
           lastSummary: {
@@ -83,5 +89,20 @@ export class PollScheduler {
 
   getStatus(): PollRunStatus {
     return { ...this.status };
+  }
+
+  private async runScheduled(): Promise<PollSummary | undefined> {
+    const now = new Date();
+    if (!this.config.pollDays.includes(now.getUTCDay())) {
+      this.status = {
+        ...this.status,
+        skippedCount: this.status.skippedCount + 1,
+        lastSkippedAt: now.toISOString(),
+        lastSkippedReason: `Scheduled polls only run on UTC days: ${this.config.pollDays.join(",")}`,
+      };
+      return undefined;
+    }
+
+    return this.runOnce();
   }
 }

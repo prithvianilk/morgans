@@ -15,7 +15,7 @@ For now, discovery only processes One Piece chapter links.
 
 ## Web App
 
-The web service starts polling on boot and repeats every `POLL_INTERVAL_MINUTES`, defaulting to `30`.
+The web service starts polling on boot and repeats every `POLL_INTERVAL_MINUTES`, defaulting to `30`. Scheduled polls only run on the configured `POLL_DAYS`, which defaults to Saturday and Sunday in UTC.
 
 Routes:
 
