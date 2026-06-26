@@ -92,7 +92,7 @@ app.use((error: unknown, _request: express.Request, response: express.Response, 
 
 const server = app.listen(config.port, () => {
   console.log(`Morgans listening on port ${config.port}`);
-  console.log(`Polling every ${config.pollIntervalMinutes} minute(s) on UTC days: ${config.pollDays.join(",")}.`);
+  console.log(`Polling every ${config.pollIntervalMinutes} minute(s) on Asia/Kolkata days: ${config.pollDays.join(",")}.`);
   scheduler.start();
 });
 

@@ -1,6 +1,8 @@
 import type { AppConfig } from "./config.js";
 import { poll, type PollSummary } from "./poll.js";
 
+const POLL_TIME_ZONE = "Asia/Kolkata";
+
 export type PollRunStatus = {
   running: boolean;
   runCount: number;
@@ -93,16 +95,31 @@ export class PollScheduler {
 
   private async runScheduled(): Promise<PollSummary | undefined> {
     const now = new Date();
-    if (!this.config.pollDays.includes(now.getUTCDay())) {
+    if (!this.config.pollDays.includes(getDayInTimeZone(now, POLL_TIME_ZONE))) {
       this.status = {
         ...this.status,
         skippedCount: this.status.skippedCount + 1,
         lastSkippedAt: now.toISOString(),
-        lastSkippedReason: `Scheduled polls only run on UTC days: ${this.config.pollDays.join(",")}`,
+        lastSkippedReason: `Scheduled polls only run on ${POLL_TIME_ZONE} days: ${this.config.pollDays.join(",")}`,
       };
       return undefined;
     }
 
     return this.runOnce();
   }
+}
+
+function getDayInTimeZone(date: Date, timeZone: string): number {
+  const weekday = new Intl.DateTimeFormat("en-US", { timeZone, weekday: "short" }).format(date);
+  const days: Record<string, number> = {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+  };
+
+  return days[weekday] ?? date.getUTCDay();
 }

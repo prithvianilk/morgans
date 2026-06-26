@@ -114,4 +114,4 @@ https://YOUR_RENDER_SERVICE.onrender.com/status
 
 The scheduler is healthy when `lastStartedAt` and `lastSuccessAt` advance every polling interval. `running: false` usually means the app is idle between polls, not broken.
 
-Scheduled polls only run on `POLL_DAYS`, defaulting to `0,6` for Sunday and Saturday in UTC. On other days, `/status` will show `lastSkippedAt` and `lastSkippedReason`.
+Scheduled polls only run on `POLL_DAYS`, defaulting to `0,6` for Sunday and Saturday in IST. On other days, `/status` will show `lastSkippedAt` and `lastSkippedReason`.
