@@ -56,8 +56,8 @@ Useful routes:
 ```txt
 GET  /healthz
 GET  /status
-GET  /auth/google
-GET  /oauth/callback
+GET  /auth/google      # only when ENABLE_AUTH_ROUTES=true
+GET  /oauth/callback   # only when ENABLE_AUTH_ROUTES=true
 POST /poll
 ```
 
@@ -79,6 +79,7 @@ GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 GOOGLE_DRIVE_FOLDER_ID=...
 GOOGLE_REDIRECT_URI=https://YOUR_RENDER_SERVICE.onrender.com/oauth/callback
+ENABLE_AUTH_ROUTES=true
 ```
 
 After the first deploy, open:
@@ -88,3 +89,5 @@ https://YOUR_RENDER_SERVICE.onrender.com/auth/google
 ```
 
 Approve Google Drive access once. The service will then upload new CBZ files to Drive and mark chapters processed only after upload succeeds.
+
+After `/status` shows `googleToken: true`, set `ENABLE_AUTH_ROUTES=false` and redeploy. Keep it off unless you need to reauthorize Google Drive.

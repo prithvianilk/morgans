@@ -13,6 +13,7 @@ export type AppConfig = {
   googleTokenFile: string;
   pollIntervalMinutes: number;
   port: number;
+  enableAuthRoutes: boolean;
   userAgent: string;
 };
 
@@ -35,6 +36,7 @@ export function loadConfig(): AppConfig {
     googleTokenFile: process.env.GOOGLE_TOKEN_FILE ?? path.join("data", "google-token.json"),
     pollIntervalMinutes: parsePositiveInteger(process.env.POLL_INTERVAL_MINUTES, 30),
     port: parsePositiveInteger(process.env.PORT, 3333),
+    enableAuthRoutes: parseBoolean(process.env.ENABLE_AUTH_ROUTES, false),
     userAgent: process.env.HTTP_USER_AGENT ?? "morgans-cli/0.1",
   };
 }
@@ -43,4 +45,9 @@ function parsePositiveInteger(value: string | undefined, fallback: number): numb
   if (!value) return fallback;
   const parsed = Number.parseInt(value, 10);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function parseBoolean(value: string | undefined, fallback: boolean): boolean {
+  if (!value) return fallback;
+  return ["1", "true", "yes", "on"].includes(value.toLowerCase());
 }

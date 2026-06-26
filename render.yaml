@@ -28,6 +28,8 @@ services:
         value: /tmp/morgans/tmp
       - key: POLL_INTERVAL_MINUTES
         value: 30
+      - key: ENABLE_AUTH_ROUTES
+        value: false
       - key: HTTP_USER_AGENT
         value: morgans-render/0.1 (+https://tcbonepiecechapters.com poller)
       - key: GOOGLE_CLIENT_ID

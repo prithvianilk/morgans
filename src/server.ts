@@ -9,13 +9,15 @@ const app = express();
 const scheduler = new PollScheduler(config);
 
 app.get("/", (_request, response) => {
+  const authLink = config.enableAuthRoutes ? '<li><a href="/auth/google">Authorize Google Drive</a></li>' : "";
+
   response.type("html").send(`
     <h1>Morgans</h1>
     <p>One Piece chapter poller is running.</p>
     <ul>
       <li><a href="/healthz">Health</a></li>
       <li><a href="/status">Status</a></li>
-      <li><a href="/auth/google">Authorize Google Drive</a></li>
+      ${authLink}
     </ul>
   `);
 });
@@ -51,34 +53,36 @@ app.post("/poll", async (_request, response, next) => {
   }
 });
 
-app.get("/auth/google", (_request, response, next) => {
-  try {
-    response.redirect(getGoogleAuthUrl(config));
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.get("/oauth/callback", async (request, response, next) => {
-  try {
-    const error = typeof request.query.error === "string" ? request.query.error : undefined;
-    if (error) {
-      response.status(400).send(`Google authorization failed: ${error}`);
-      return;
+if (config.enableAuthRoutes) {
+  app.get("/auth/google", (_request, response, next) => {
+    try {
+      response.redirect(getGoogleAuthUrl(config));
+    } catch (error) {
+      next(error);
     }
+  });
 
-    const code = typeof request.query.code === "string" ? request.query.code : undefined;
-    if (!code) {
-      response.status(400).send("Missing authorization code.");
-      return;
+  app.get("/oauth/callback", async (request, response, next) => {
+    try {
+      const error = typeof request.query.error === "string" ? request.query.error : undefined;
+      if (error) {
+        response.status(400).send(`Google authorization failed: ${error}`);
+        return;
+      }
+
+      const code = typeof request.query.code === "string" ? request.query.code : undefined;
+      if (!code) {
+        response.status(400).send("Missing authorization code.");
+        return;
+      }
+
+      await saveGoogleTokenFromCode(config, code);
+      response.send("Google Drive authorization complete. Morgans can upload chapters now.");
+    } catch (error) {
+      next(error);
     }
-
-    await saveGoogleTokenFromCode(config, code);
-    response.send("Google Drive authorization complete. Morgans can upload chapters now.");
-  } catch (error) {
-    next(error);
-  }
-});
+  });
+}
 
 app.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
   const message = error instanceof Error ? error.message : String(error);
