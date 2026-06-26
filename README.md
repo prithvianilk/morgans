@@ -4,35 +4,36 @@
   <img src="assets/morgans-mascot.webp" alt="Morgans mascot" width="220">
 </p>
 
-Small TypeScript CLI for polling TCB chapters, packaging unprocessed chapters as CBZ files, and optionally copying them into a Google Drive-synced folder for Kobo.
+Morgans watches TCB Scans for new One Piece chapters, downloads the chapter images, packages them as a CBZ, and uploads the result to Google Drive for Kobo sync.
+
+It can run in two modes:
+
+- **Web service:** a long-running Render app that polls automatically every 30 minutes.
+- **CLI:** a local TypeScript command for dry-runs, one-off polls, and local testing.
 
 For now, discovery only processes One Piece chapter links.
 
-## Setup
+## Web App
 
-```bash
-npm install
-cp .env.example .env
+The web service starts polling on boot and repeats every `POLL_INTERVAL_MINUTES`, defaulting to `30`.
+
+Routes:
+
+```txt
+GET  /healthz
+GET  /status
+POST /poll
+GET  /auth/google      # only when ENABLE_AUTH_ROUTES=true
+GET  /oauth/callback   # only when ENABLE_AUTH_ROUTES=true
 ```
 
-For local testing, create a Google OAuth desktop client and set these in `.env`:
+`/status` shows whether Google Drive is authorized, whether a poll is currently running, and when the last poll succeeded.
 
-```bash
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-GOOGLE_REDIRECT_URI=http://localhost:3333/oauth/callback
-GOOGLE_DRIVE_FOLDER_ID=...
-```
+Render deployment is described in [SETUP.md](SETUP.md).
 
-When this moves to a web service, keep the same Drive upload flow and swap `GOOGLE_REDIRECT_URI` to the deployed callback URL.
+## CLI
 
-Then run the one-time auth flow:
-
-```bash
-npm run drive:auth
-```
-
-## Local Commands
+Useful local commands:
 
 ```bash
 npm run poll -- --dry-run
@@ -41,55 +42,19 @@ npm run poll -- --dry-run --source /mangas/5/one-piece
 npm run drive:auth
 ```
 
-The processed-chapter state lives at `data/processed-chapters.json` by default. Generated files live under `downloads/`.
+The CLI uses the same core polling, download, CBZ, and Google Drive upload modules as the web service.
 
-## Web Service
-
-Run the web service locally:
-
-```bash
-npm run dev:server
-```
-
-Useful routes:
+## Project Shape
 
 ```txt
-GET  /healthz
-GET  /status
-GET  /auth/google      # only when ENABLE_AUTH_ROUTES=true
-GET  /oauth/callback   # only when ENABLE_AUTH_ROUTES=true
-POST /poll
+src/
+  index.ts        # CLI entrypoint
+  server.ts       # web service entrypoint
+  scheduler.ts    # recurring poll loop
+  poll.ts         # shared orchestration
+  chapters.ts     # TCB parsing
+  googleDrive.ts  # OAuth and upload
+  store.ts        # processed-chapter JSON state
 ```
 
-The service starts polling immediately and repeats every `POLL_INTERVAL_MINUTES`, defaulting to `30`.
-
-## Render
-
-This repo includes `render.yaml` for a Render web service. It uses a persistent disk mounted at `/var/data` for:
-
-```txt
-/var/data/google-token.json
-/var/data/processed-chapters.json
-```
-
-Render persistent disks require a paid service plan and billing information on the account.
-
-Set these secret env vars in Render:
-
-```bash
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-GOOGLE_DRIVE_FOLDER_ID=...
-GOOGLE_REDIRECT_URI=https://YOUR_RENDER_SERVICE.onrender.com/oauth/callback
-ENABLE_AUTH_ROUTES=true
-```
-
-After the first deploy, open:
-
-```txt
-https://YOUR_RENDER_SERVICE.onrender.com/auth/google
-```
-
-Approve Google Drive access once. The service will then upload new CBZ files to Drive and mark chapters processed only after upload succeeds.
-
-After `/status` shows `googleToken: true`, set `ENABLE_AUTH_ROUTES=false` and redeploy. Keep it off unless you need to reauthorize Google Drive.
+Generated files and runtime state are intentionally not committed.
