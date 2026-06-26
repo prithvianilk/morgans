@@ -72,6 +72,8 @@ This repo includes `render.yaml` for a Render web service. It uses a persistent 
 /var/data/processed-chapters.json
 ```
 
+Render persistent disks require a paid service plan and billing information on the account.
+
 Set these secret env vars in Render:
 
 ```bash

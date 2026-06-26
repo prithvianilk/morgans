@@ -2,7 +2,7 @@ services:
   - type: web
     name: morgans
     runtime: node
-    plan: free
+    plan: starter
     buildCommand: npm ci && npm run build
     startCommand: npm run serve
     healthCheckPath: /healthz
