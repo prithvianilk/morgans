@@ -1,7 +1,7 @@
 # Morgans
 
 <p align="center">
-  <img src="assets/morgans-mascot.jpg" alt="Morgans mascot" width="220">
+  <img src="https://cdn.myanimelist.net/images/characters/7/361324.jpg" alt="Morgans mascot" width="220">
 </p>
 
 Morgans watches TCB Scans for new One Piece chapters, downloads the chapter images, packages them as a CBZ, and uploads the result to Google Drive for Kobo sync.
