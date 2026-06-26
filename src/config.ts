@@ -15,6 +15,8 @@ export type AppConfig = {
   pollDays: number[];
   port: number;
   enableAuthRoutes: boolean;
+  enableAdminRoutes: boolean;
+  adminToken?: string;
   userAgent: string;
 };
 
@@ -39,6 +41,8 @@ export function loadConfig(): AppConfig {
     pollDays: parsePollDays(process.env.POLL_DAYS, [0, 6]),
     port: parsePositiveInteger(process.env.PORT, 3333),
     enableAuthRoutes: parseBoolean(process.env.ENABLE_AUTH_ROUTES, false),
+    enableAdminRoutes: parseBoolean(process.env.ENABLE_ADMIN_ROUTES, false),
+    adminToken: process.env.ADMIN_TOKEN || undefined,
     userAgent: process.env.HTTP_USER_AGENT ?? "morgans-cli/0.1",
   };
 }

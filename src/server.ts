@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { rm } from "node:fs/promises";
 import express from "express";
 import { loadConfig } from "./config.js";
 import { getGoogleAuthUrl, hasGoogleToken, saveGoogleTokenFromCode } from "./googleDrive.js";
@@ -85,9 +86,22 @@ if (config.enableAuthRoutes) {
   });
 }
 
+if (config.enableAdminRoutes) {
+  app.post("/admin/reset-processed", async (request, response, next) => {
+    try {
+      assertAdminToken(request);
+      await rm(config.stateFile, { force: true });
+      response.json({ ok: true, deleted: config.stateFile });
+    } catch (error) {
+      next(error);
+    }
+  });
+}
+
 app.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
   const message = error instanceof Error ? error.message : String(error);
-  response.status(500).json({ ok: false, error: message });
+  const status = error instanceof HttpError ? error.status : 500;
+  response.status(status).json({ ok: false, error: message });
 });
 
 const server = app.listen(config.port, () => {
@@ -105,3 +119,23 @@ function shutdown(): void {
 
 process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);
+
+function assertAdminToken(request: express.Request): void {
+  if (!config.adminToken) {
+    throw new HttpError(404, "Admin routes are not configured.");
+  }
+
+  const expected = `Bearer ${config.adminToken}`;
+  if (request.header("authorization") !== expected) {
+    throw new HttpError(401, "Unauthorized.");
+  }
+}
+
+class HttpError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
